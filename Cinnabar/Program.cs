@@ -22,7 +22,7 @@ public class Program
         var collection = new ServiceCollection()
             .AddSingleton(new DiscordSocketConfig())
             .AddSingleton(new DiscordSocketClient())
-            .AddTransient<TestModule>();
+            .AddTransient<GeneralModule>();
 
         return collection.BuildServiceProvider();
     }
