@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 
 namespace Cinnabar.Modules;
 
@@ -43,4 +44,47 @@ public class GeneralModule : InteractionModuleBase
             .Build();
         await RespondAsync(embed: embed);
     }
+
+    [SlashCommand("userinfo", "Displays information about the user")]
+    public async Task UserInfo(IUser? user = null)
+    {
+        user ??= Context.Interaction.User;
+        var idField = new EmbedFieldBuilder()
+        {
+            Name = "User ID",
+            Value = user.Id.ToString()
+        };
+        var nameField = new EmbedFieldBuilder()
+        {
+            Name = "Display Name",
+            Value = Context.Guild.GetUserAsync(user.Id).Result.GlobalName
+        };
+        var nickName = new EmbedFieldBuilder()
+        {
+            Name = "Nickname",
+            Value = Context.Guild.GetUserAsync(user.Id).Result.DisplayName
+        };
+        var creationDate = new EmbedFieldBuilder()
+        {
+            Name = "Account creation date",
+            Value = user.CreatedAt.ToString()
+        };
+        var joinedDate = new EmbedFieldBuilder()
+        {
+            Name = "Account creation date",
+            Value = Context.Guild.GetUserAsync(user.Id).Result.JoinedAt.ToString()
+        };
+        var embed = new EmbedBuilder() 
+            .WithTitle($"About {user.Username}")
+            .WithAuthor("test")
+            .WithFields(idField, nameField, nickName, creationDate, joinedDate)
+            .WithThumbnailUrl(user.GetAvatarUrl())
+            .WithColor(new Color(255, 5, 59))
+            .WithFooter($"Command ran by {user.Username}")
+            .WithCurrentTimestamp()
+            .Build();
+        await RespondAsync(embed: embed);
+    }
+
+    
 }
