@@ -49,6 +49,7 @@ public class GeneralModule : InteractionModuleBase
     public async Task UserInfo(IUser? user = null)
     {
         user ??= Context.Interaction.User;
+        IGuildUser guildUser = Context.Guild.GetUserAsync(user.Id).Result;
         var idField = new EmbedFieldBuilder()
         {
             Name = "User ID",
@@ -57,12 +58,12 @@ public class GeneralModule : InteractionModuleBase
         var nameField = new EmbedFieldBuilder()
         {
             Name = "Display Name",
-            Value = Context.Guild.GetUserAsync(user.Id).Result.GlobalName
+            Value = guildUser.GlobalName ?? guildUser.DisplayName
         };
         var nickName = new EmbedFieldBuilder()
         {
             Name = "Nickname",
-            Value = Context.Guild.GetUserAsync(user.Id).Result.DisplayName
+            Value = guildUser.DisplayName
         };
         var creationDate = new EmbedFieldBuilder()
         {
@@ -72,12 +73,17 @@ public class GeneralModule : InteractionModuleBase
         var joinedDate = new EmbedFieldBuilder()
         {
             Name = "Account creation date",
-            Value = Context.Guild.GetUserAsync(user.Id).Result.JoinedAt.ToString()
+            Value = guildUser.JoinedAt.ToString()
+        };
+        var isBot = new EmbedFieldBuilder
+        {
+            Name = "Bot",
+            Value = guildUser.IsBot
         };
         var embed = new EmbedBuilder() 
             .WithTitle($"About {user.Username}")
             .WithAuthor("test")
-            .WithFields(idField, nameField, nickName, creationDate, joinedDate)
+            .WithFields(idField, nameField, nickName, creationDate, joinedDate, isBot)
             .WithThumbnailUrl(user.GetAvatarUrl())
             .WithColor(new Color(255, 5, 59))
             .WithFooter($"Command ran by {user.Username}")
