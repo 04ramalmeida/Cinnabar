@@ -80,11 +80,11 @@ public class GeneralModule : InteractionModuleBase
             Name = "Bot",
             Value = guildUser.IsBot
         };
+        var imageUrl = user.GetAvatarUrl();
         var embed = new EmbedBuilder() 
-            .WithTitle($"About {user.Username}")
-            .WithAuthor("test")
+            .WithAuthor($"About {user.Username}", iconUrl: imageUrl)
             .WithFields(idField, nameField, nickName, creationDate, joinedDate, isBot)
-            .WithThumbnailUrl(user.GetAvatarUrl())
+            .WithThumbnailUrl(imageUrl)
             .WithColor(new Color(255, 5, 59))
             .WithFooter($"Command ran by {user.Username}")
             .WithCurrentTimestamp()
