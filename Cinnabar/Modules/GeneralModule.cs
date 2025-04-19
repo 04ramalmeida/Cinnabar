@@ -112,7 +112,45 @@ public class GeneralModule : InteractionModuleBase
         await RespondAsync(embed: embed);
     }
 
-    
+    [SlashCommand("serverinfo", "Displays information about the server")]
+    public async Task ServerInfo()
+    {
+        var guild = Context.Guild;
+        var owner = guild.GetOwnerAsync().Result;
+        var serverName = new EmbedFieldBuilder
+        {
+            Name = "Server Name",
+            Value = guild.Name
+        };
+        var serverId = new EmbedFieldBuilder
+        {
+            Name = "Server ID",
+            Value = guild.Id.ToString()
+        };
+        var created = new EmbedFieldBuilder
+        {
+            Name = "Created",
+            Value = $"At ``{guild.CreatedAt.ToString()}`` by {owner.Username}"
+        };
+        var memberCount = new EmbedFieldBuilder
+        {
+            Name = "Member Count",
+            Value = (guild as SocketGuild).MemberCount
+        };
+        var channelCount = new EmbedFieldBuilder
+        {
+            Name = "Channel Count",
+            Value = (guild as SocketGuild).Channels.Count
+        };
+        
+        var embed = _embed.CinnabarEmbed($"About {guild.Name}",
+            string.Empty,
+            guild.IconUrl,
+            [serverName, created, memberCount, channelCount],
+            Context.Interaction.User);
+        
+        await RespondAsync(embed: embed);
+    }
 
     
 }
