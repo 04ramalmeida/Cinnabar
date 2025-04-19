@@ -22,7 +22,8 @@ public class Program
         var collection = new ServiceCollection()
             .AddSingleton(new DiscordSocketConfig())
             .AddSingleton(new DiscordSocketClient())
-            .AddTransient<GeneralModule>();
+            .AddTransient<GeneralModule>()
+            .AddTransient<EmbedBase>();
 
         return collection.BuildServiceProvider();
     }
