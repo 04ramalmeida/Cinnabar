@@ -23,6 +23,7 @@ public class Program
             .AddSingleton(new DiscordSocketConfig())
             .AddSingleton(new DiscordSocketClient())
             .AddTransient<GeneralModule>()
+            .AddTransient<FunModule>()
             .AddTransient<EmbedBase>();
 
         return collection.BuildServiceProvider();
