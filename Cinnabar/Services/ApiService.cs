@@ -16,7 +16,7 @@ public class ApiService
 
         if (!response.IsSuccessStatusCode)
         {
-            return new ApiResponse<T?> { 
+            return new ApiResponse<T> { 
                 IsSuccess = false,
                 StatusCode = response.StatusCode,
                 Message = response.ReasonPhrase 
