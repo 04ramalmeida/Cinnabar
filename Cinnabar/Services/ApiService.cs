@@ -1,20 +1,22 @@
 using System.Text.Json;
+using Cinnabar.Modules;
 
 namespace Cinnabar.Services;
 
-public class ApiService<T> where T : class
+public class ApiService
 {
-    private readonly HttpClient _client = new HttpClient();
     
-    public async Task<ApiResponse> Get(string url)
+    
+    public async Task<ApiResponse<T>> Get<T>(string url)
     {
-        _client.BaseAddress = new Uri(url);
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri(url);
         
-        var response = await _client.GetAsync(url);
+        var response = await client.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {
-            return new ApiResponse { 
+            return new ApiResponse<T?> { 
                 IsSuccess = false,
                 StatusCode = response.StatusCode,
                 Message = response.ReasonPhrase 
@@ -22,8 +24,13 @@ public class ApiService<T> where T : class
         }
         else
         {
-            T apiObject = JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
-            return new ApiResponse
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var apiObject = JsonSerializer.Deserialize<T>(responseContent, options);
+            return new ApiResponse<T>
             {
                 IsSuccess = true,
                 StatusCode = response.StatusCode,

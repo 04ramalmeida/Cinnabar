@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Reflection;
 using Cinnabar.Modules;
+using Cinnabar.Services;
 using Discord;
 using Discord.Commands;
 using Discord.Interactions;
@@ -22,6 +23,7 @@ public class Program
         var collection = new ServiceCollection()
             .AddSingleton(new DiscordSocketConfig())
             .AddSingleton(new DiscordSocketClient())
+            .AddSingleton<ApiService>()
             .AddTransient<GeneralModule>()
             .AddTransient<FunModule>()
             .AddTransient<EmbedBase>();

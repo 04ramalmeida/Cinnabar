@@ -2,7 +2,7 @@ using System.Net;
 
 namespace Cinnabar.Services;
 
-public class ApiResponse
+public class ApiResponse<T>
 {
     public bool IsSuccess {get; set;}
     
@@ -10,5 +10,5 @@ public class ApiResponse
     
     public string? Message { get; set; }
     
-    public object Object {get; set;}
+    public T? Object {get; set;}
 }
