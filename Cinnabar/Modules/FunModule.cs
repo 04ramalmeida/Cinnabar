@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Cinnabar.Services;
 using Discord.Interactions;
 
@@ -28,7 +29,21 @@ public class FunModule : InteractionModuleBase
         }
     }
 
-
+    [SlashCommand("dog", "Get a picture of a dog.")]
+    public async Task Dog()
+    {
+        var apiRequest = await _apiService.Get<DogHttpResponse>("https://dog.ceo/api/breeds/image/random");
+        if (!apiRequest.IsSuccess)
+        {
+            await RespondAsync("An error has occured.");
+        }
+        else
+        {
+            DogHttpResponse response = apiRequest.Object;
+            Uri url = new Uri(apiRequest.Object.Message);
+            await RespondAsync(url.AbsoluteUri);
+        }
+    }
 }
 
 public class CatHttpResponse
@@ -38,4 +53,10 @@ public class CatHttpResponse
     public string Url { get; set; }
     public int Width { get; set; }
     public int Height { get; set; }
+}
+
+public class DogHttpResponse
+{
+    public string Message  { get; set; }
+    public string Status { get; set; }
 }
