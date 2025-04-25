@@ -44,6 +44,24 @@ public class FunModule : InteractionModuleBase
             await RespondAsync(url.AbsoluteUri);
         }
     }
+
+    [SlashCommand("fox", "Get a picture of a fox.")]
+    public async Task Fox()
+    {
+        var apiRequest = await _apiService.Get<FoxHttpResponse>("https://randomfox.ca/floof/");
+        if (!apiRequest.IsSuccess)
+        {
+            await RespondAsync("An error has occured.");
+        }
+        else
+        {
+            FoxHttpResponse response = apiRequest.Object;
+            Uri url = new Uri(apiRequest.Object.Image);
+            await RespondAsync(url.AbsoluteUri);
+        }
+    }
+
+    
 }
 
 public class CatHttpResponse
@@ -59,4 +77,10 @@ public class DogHttpResponse
 {
     public string Message  { get; set; }
     public string Status { get; set; }
+}
+
+public class FoxHttpResponse
+{
+    public string Image { get; set; }
+    public string Link { get; set; }
 }
