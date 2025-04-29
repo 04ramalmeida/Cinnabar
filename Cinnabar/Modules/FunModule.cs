@@ -71,6 +71,8 @@ public class FunModule : InteractionModuleBase
     public async Task Weather(string city)
     {
         var apiRequest = await _apiService.Get<WeatherHttpResponse>($"http://goweather.xyz/weather/{city}");
+        var currentDate = DateTime.Now;
+        var tomorrow = DateTime.Today.AddDays(1);
         if (!apiRequest.IsSuccess)
         {
             await RespondAsync("An error has occured.");
@@ -93,8 +95,26 @@ public class FunModule : InteractionModuleBase
                 Name = "Description",
                 Value = response.Description
             };
+            var ForecastTmrwField = new EmbedFieldBuilder
+            {
+                Name = $"Forecast for {currentDate.AddDays(1).ToShortDateString()}",
+                Value = response.Forecast[0].Temperature,
+                IsInline = true
+            };
+            var ForecastTwoField = new EmbedFieldBuilder
+            {
+                Name = $"Forecast for {currentDate.AddDays(2).ToShortDateString()}",
+                Value = response.Forecast[1].Temperature,
+                IsInline = true
+            };
+            var ForecastThreeField = new EmbedFieldBuilder
+            {
+                Name = $"Forecast for {currentDate.AddDays(3).ToShortDateString()}",
+                Value = response.Forecast[2].Temperature,
+                IsInline = true
+            };
             var embed = _embed.CinnabarEmbed($"Weather for {city}", String.Empty, String.Empty,
-                [TemperatureField, WindField, DescriptionField], Context.User);
+                [TemperatureField, WindField, DescriptionField, ForecastTmrwField, ForecastTwoField, ForecastThreeField], Context.User);
             await RespondAsync(embed: embed);
         }
     }
