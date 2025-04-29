@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cinnabar.Services;
+using Discord;
 using Discord.Interactions;
 
 namespace Cinnabar.Modules;
@@ -8,10 +9,15 @@ namespace Cinnabar.Modules;
 public class FunModule : InteractionModuleBase
 {
     ApiService _apiService;
-    public FunModule(ApiService apiService)
+    EmbedBase _embed;
+    public FunModule(
+        ApiService apiService,
+        EmbedBase embed)
     {
         _apiService = apiService;
+        _embed = embed;
     }
+
     
     [SlashCommand("cat", "Get a picture of a cat.")]
     public async Task Cat()
@@ -61,7 +67,37 @@ public class FunModule : InteractionModuleBase
         }
     }
 
-    
+    [SlashCommand("weather", "Get information about the weather in a certain city.")]
+    public async Task Weather(string city)
+    {
+        var apiRequest = await _apiService.Get<WeatherHttpResponse>($"http://goweather.xyz/weather/{city}");
+        if (!apiRequest.IsSuccess)
+        {
+            await RespondAsync("An error has occured.");
+        }
+        else
+        {
+            WeatherHttpResponse response = apiRequest.Object;
+            var TemperatureField = new EmbedFieldBuilder
+            {
+                Name = "Temperature",
+                Value = response.Temperature
+            };
+            var WindField = new EmbedFieldBuilder
+            {
+                Name = "Wind",
+                Value = response.Wind
+            };
+            var DescriptionField = new EmbedFieldBuilder
+            {
+                Name = "Description",
+                Value = response.Description
+            };
+            var embed = _embed.CinnabarEmbed($"Weather for {city}", String.Empty, String.Empty,
+                [TemperatureField, WindField, DescriptionField], Context.User);
+            await RespondAsync(embed: embed);
+        }
+    }
 }
 
 public class CatHttpResponse
@@ -83,4 +119,19 @@ public class FoxHttpResponse
 {
     public string Image { get; set; }
     public string Link { get; set; }
+}
+
+public class WeatherHttpResponse
+{
+    public string Temperature { get; set; }
+    public string Wind  { get; set; }
+    public string Description { get; set; }
+    public Forecast[] Forecast { get; set; }
+}
+
+public class Forecast
+{
+    public string Day { get; set; }
+    public string Temperature { get; set; }
+    public string Wind { get; set; }
 }

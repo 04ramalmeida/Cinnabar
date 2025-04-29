@@ -26,7 +26,7 @@ public class EmbedBase : InteractionModuleBase
         else
         {
             embed = new EmbedBuilder() 
-                .WithAuthor($"About {user.Username}", iconUrl: imageUrl)
+                .WithAuthor(authorTitle, iconUrl: imageUrl)
                 .WithFields(fields)
                 .WithThumbnailUrl(imageUrl)
                 .WithColor(new Color(255, 5, 59))
