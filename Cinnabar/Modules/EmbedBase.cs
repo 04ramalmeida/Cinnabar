@@ -23,10 +23,22 @@ public class EmbedBase : InteractionModuleBase
                 .WithCurrentTimestamp()
                 .Build();
         }
+        else if (description == null)
+        {
+            embed = new EmbedBuilder() 
+                .WithAuthor(authorTitle, iconUrl: imageUrl)
+                .WithFields(fields)
+                .WithThumbnailUrl(imageUrl)
+                .WithColor(new Color(255, 5, 59))
+                .WithFooter($"Command ran by {user.Username}")
+                .WithCurrentTimestamp()
+                .Build();
+        }
         else
         {
             embed = new EmbedBuilder() 
                 .WithAuthor(authorTitle, iconUrl: imageUrl)
+                .WithDescription(description)
                 .WithFields(fields)
                 .WithThumbnailUrl(imageUrl)
                 .WithColor(new Color(255, 5, 59))

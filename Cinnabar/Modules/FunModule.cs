@@ -118,6 +118,39 @@ public class FunModule : InteractionModuleBase
             await RespondAsync(embed: embed);
         }
     }
+
+    [SlashCommand("dictionary", "Get a definition of a word")]
+    public async Task Dictionary()
+    {
+        var apiRequest = await _apiService.Get<List<DictionaryDef>>($"https://api.dictionaryapi.dev/api/v2/entries/en/hello");
+        if (!apiRequest.IsSuccess)
+        {
+            await RespondAsync("An error has occured.");
+        }
+        else
+        {
+            DictionaryDef response = apiRequest.Object.FirstOrDefault();
+            string description = "**Definition**\n" +
+                                 $"{response.Meanings[2].Definitions[0].Definition}\n" +
+                                 $"-# {response.Meanings[2].PartOfSpeech}";
+            EmbedFieldBuilder phoneticsField = new EmbedFieldBuilder
+            {
+                Name = "Phonetics",
+                Value = response.Phonetics[1].Text
+            };
+            /*EmbedFieldBuilder originField = new EmbedFieldBuilder
+            {
+                Name = "Origin",
+                Value = response.Origin
+            };*/
+            
+            
+            var embed = _embed.CinnabarEmbed($"Definition for {response.Word}", description, String.Empty, 
+                [phoneticsField], Context.User);
+            await RespondAsync(embed: embed);
+        }
+        
+    }
 }
 
 public class CatHttpResponse
@@ -154,4 +187,33 @@ public class Forecast
     public string Day { get; set; }
     public string Temperature { get; set; }
     public string Wind { get; set; }
+}
+
+public class DictionaryDef
+{
+    public string Word { get; set; }
+    public string Phonetic { get; set; }
+    public Phonetic[] Phonetics { get; set; }
+    public string Origin { get; set; }
+    public required Meaning[] Meanings { get; set; }
+}
+
+public class Phonetic
+{
+    public string? Text  { get; set; }
+    public string? Audio { get; set; }
+}
+
+public class Meaning
+{
+    public required string PartOfSpeech  { get; set; }
+    public required Definitions[] Definitions { get; set; }
+}
+
+public class Definitions
+{
+    public string Definition { get; set; }
+    public string Example { get; set; }
+    public string[] Synonyms { get; set; }
+    public string[] Antonyms { get; set; }
 }
