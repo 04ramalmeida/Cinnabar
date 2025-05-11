@@ -120,9 +120,9 @@ public class FunModule : InteractionModuleBase
     }
 
     [SlashCommand("dictionary", "Get a definition of a word")]
-    public async Task Dictionary()
+    public async Task Dictionary(string word)
     {
-        var apiRequest = await _apiService.Get<List<DictionaryDef>>($"https://api.dictionaryapi.dev/api/v2/entries/en/hello");
+        var apiRequest = await _apiService.Get<List<DictionaryDef>>($"https://api.dictionaryapi.dev/api/v2/entries/en/{word}");
         if (!apiRequest.IsSuccess)
         {
             await RespondAsync("An error has occured.");
@@ -130,9 +130,10 @@ public class FunModule : InteractionModuleBase
         else
         {
             DictionaryDef response = apiRequest.Object.FirstOrDefault();
+            var firstMeaning = GetMeaning(response);
             string description = "**Definition**\n" +
-                                 $"{response.Meanings[2].Definitions[0].Definition}\n" +
-                                 $"-# {response.Meanings[2].PartOfSpeech}";
+                                 $"{firstMeaning.Definitions[0].Definition}\n" +
+                                 $"-# {firstMeaning.PartOfSpeech}";
             EmbedFieldBuilder phoneticsField = new EmbedFieldBuilder
             {
                 Name = "Phonetics",
@@ -150,6 +151,15 @@ public class FunModule : InteractionModuleBase
             await RespondAsync(embed: embed);
         }
         
+    }
+
+    private Meaning GetMeaning(DictionaryDef response)
+    {
+        List<Meaning> meanings = response.Meanings.ToList();
+        // Sort list by the length of the first definition somehow
+        meanings = meanings.OrderByDescending(m => m.Definitions.First().Definition.Length).ToList();
+        // Return the first item
+        return meanings.First();
     }
 }
 
