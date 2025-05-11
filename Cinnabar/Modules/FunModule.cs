@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cinnabar.Models;
 using Cinnabar.Services;
 using Discord;
 using Discord.Interactions;
@@ -22,14 +23,14 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("cat", "Get a picture of a cat.")]
     public async Task Cat()
     {
-        var apiRequest = await _apiService.Get<List<CatHttpResponse>>("https://api.thecatapi.com/v1/images/search");
+        var apiRequest = await _apiService.Get<List<Cat>>("https://api.thecatapi.com/v1/images/search");
         if (!apiRequest.IsSuccess)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            List<CatHttpResponse> response = apiRequest.Object;
+            List<Cat> response = apiRequest.Object;
             Uri url = new Uri(apiRequest.Object.FirstOrDefault().Url);
             await RespondAsync(url.AbsoluteUri);
         }
@@ -38,14 +39,14 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("dog", "Get a picture of a dog.")]
     public async Task Dog()
     {
-        var apiRequest = await _apiService.Get<DogHttpResponse>("https://dog.ceo/api/breeds/image/random");
+        var apiRequest = await _apiService.Get<Dog>("https://dog.ceo/api/breeds/image/random");
         if (!apiRequest.IsSuccess)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            DogHttpResponse response = apiRequest.Object;
+            Dog response = apiRequest.Object;
             Uri url = new Uri(apiRequest.Object.Message);
             await RespondAsync(url.AbsoluteUri);
         }
@@ -54,14 +55,14 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("fox", "Get a picture of a fox.")]
     public async Task Fox()
     {
-        var apiRequest = await _apiService.Get<FoxHttpResponse>("https://randomfox.ca/floof/");
+        var apiRequest = await _apiService.Get<Fox>("https://randomfox.ca/floof/");
         if (!apiRequest.IsSuccess)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            FoxHttpResponse response = apiRequest.Object;
+            Fox response = apiRequest.Object;
             Uri url = new Uri(apiRequest.Object.Image);
             await RespondAsync(url.AbsoluteUri);
         }
@@ -70,7 +71,7 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("weather", "Get information about the weather in a certain city.")]
     public async Task Weather(string city)
     {
-        var apiRequest = await _apiService.Get<WeatherHttpResponse>($"http://goweather.xyz/weather/{city}");
+        var apiRequest = await _apiService.Get<Weather>($"http://goweather.xyz/weather/{city}");
         var currentDate = DateTime.Now;
         var tomorrow = DateTime.Today.AddDays(1);
         if (!apiRequest.IsSuccess)
@@ -79,7 +80,7 @@ public class FunModule : InteractionModuleBase
         }
         else
         {
-            WeatherHttpResponse response = apiRequest.Object;
+            Weather response = apiRequest.Object;
             var TemperatureField = new EmbedFieldBuilder
             {
                 Name = "Temperature",
@@ -163,67 +164,3 @@ public class FunModule : InteractionModuleBase
     }
 }
 
-public class CatHttpResponse
-{
-    
-    public string Id { get; set; }
-    public string Url { get; set; }
-    public int Width { get; set; }
-    public int Height { get; set; }
-}
-
-public class DogHttpResponse
-{
-    public string Message  { get; set; }
-    public string Status { get; set; }
-}
-
-public class FoxHttpResponse
-{
-    public string Image { get; set; }
-    public string Link { get; set; }
-}
-
-public class WeatherHttpResponse
-{
-    public string Temperature { get; set; }
-    public string Wind  { get; set; }
-    public string Description { get; set; }
-    public Forecast[] Forecast { get; set; }
-}
-
-public class Forecast
-{
-    public string Day { get; set; }
-    public string Temperature { get; set; }
-    public string Wind { get; set; }
-}
-
-public class DictionaryDef
-{
-    public string Word { get; set; }
-    public string Phonetic { get; set; }
-    public Phonetic[] Phonetics { get; set; }
-    public string Origin { get; set; }
-    public required Meaning[] Meanings { get; set; }
-}
-
-public class Phonetic
-{
-    public string? Text  { get; set; }
-    public string? Audio { get; set; }
-}
-
-public class Meaning
-{
-    public required string PartOfSpeech  { get; set; }
-    public required Definitions[] Definitions { get; set; }
-}
-
-public class Definitions
-{
-    public string Definition { get; set; }
-    public string Example { get; set; }
-    public string[] Synonyms { get; set; }
-    public string[] Antonyms { get; set; }
-}
