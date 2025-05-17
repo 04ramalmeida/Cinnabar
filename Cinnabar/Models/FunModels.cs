@@ -132,17 +132,64 @@ public class Attr
     public int Rank { get; set; }
 }
 
-public class Artist
-{
-    public string Url { get; set; }
-    public string Name { get; set; }
-    public string Mbid { get; set; }
-}
 
 public class Wiki
 {
     public string Published { get; set; }
     public string Summary { get; set; }
     public string Content { get; set; }
+}
+
+public class ArtistRootObject
+{
+    public Artist artist { get; set; }
+}
+
+public class Artist
+{
+    public string Name { get; set; }
+    public string Mbid { get; set; }
+    public string Url { get; set; }
+    public Image[] Image { get; set; }
+    public string Streamable { get; set; }
+    public string Ontour { get; set; }
+    public Stats Stats { get; set; }
+    public Similar Similar { get; set; }
+    public Tags Tags { get; set; }
+    public Bio Bio { get; set; }
+}
+
+
+
+public class Stats
+{
+    public string Listeners { get; set; }
+    public string Playcount { get; set; }
+}
+
+public class Similar
+{
+    public Artist[] Artist { get; set; }
+}
+
+public class Bio
+{
+    public Links Links { get; set; }
+    public string Published { get; set; }
+    public string Summary { get; set; }
+    public string Content { get; set; }
+}
+
+public class Links
+{
+    public Link Link { get; set; }
+}
+
+public class Link
+{
+    [JsonPropertyName("#text")]
+    public string Text { get; set; }
+    public string Rel { get; set; }
+    public string Href { get; set; }
 }
 

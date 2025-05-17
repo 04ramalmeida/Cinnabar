@@ -165,12 +165,12 @@ public class FunModule : InteractionModuleBase
     }
 
     [SlashCommand("album", "Get information about an album")]
-    public async Task Album()
+    public async Task Album(string artist, string album)
     {
         var apiKey = JsonConvert.DeserializeObject<Config>(File.ReadAllText("appsettings.json")).FmApiKey;
 
         Uri uri = new Uri(
-            $"http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={apiKey}&artist=Cher&album=Believe&format=json");
+            $"http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={apiKey}&artist={artist}&album={album}&format=json");
         
         var apiRequest = await _apiService.Get<AlbumRootObject>(uri.ToString());
         if (!apiRequest.IsSuccess)
@@ -192,6 +192,42 @@ public class FunModule : InteractionModuleBase
                 response.Image[2].ImageUrl,
                 [TagsField], Context.User
             );
+            await RespondAsync(embed: embed);
+        }
+    }
+
+    [SlashCommand("artist", "Get information about an artist")]
+    public async Task Artist()
+    {
+        var apiKey = JsonConvert.DeserializeObject<Config>(File.ReadAllText("appsettings.json")).FmApiKey;
+
+        Uri uri = new Uri(
+            $"https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=Cher&api_key={apiKey}&format=json");
+        
+        var apiRequest = await _apiService.Get<ArtistRootObject>(uri.ToString());
+        if (!apiRequest.IsSuccess)
+        {
+            await RespondAsync("An error has occured.");
+        }
+        else
+        {
+            Artist response = apiRequest.Object.artist;
+
+            var TagsField = new EmbedFieldBuilder
+            {
+                Name = "Tags",
+                Value = String.Join(" ",response.Tags.Tag.Select(t => t.Name))
+            };
+            
+            var SimilarField = new EmbedFieldBuilder
+            {
+                Name = "Similar artists",
+                Value = String.Join(", ",response.Similar.Artist.Select(s => s.Name)),
+                
+            };
+            var embed = _embed.CinnabarEmbed($"About {response.Name}",
+                response.Bio.Summary, response.Image[2].ImageUrl,
+                [TagsField, SimilarField], Context.User); 
             await RespondAsync(embed: embed);
         }
     }
