@@ -22,20 +22,18 @@ public class ApiService
                 Message = response.ReasonPhrase 
             };
         }
-        else
+
+        var options = new JsonSerializerOptions
         {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var apiObject = JsonSerializer.Deserialize<T>(responseContent, options);
-            return new ApiResponse<T>
-            {
-                IsSuccess = true,
-                StatusCode = response.StatusCode,
-                Object = apiObject
-            };
-        }
+            PropertyNameCaseInsensitive = true
+        };
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var apiObject = JsonSerializer.Deserialize<T>(responseContent, options);
+        return new ApiResponse<T>
+        {
+            IsSuccess = true,
+            StatusCode = response.StatusCode,
+            Object = apiObject
+        };
     }
 }

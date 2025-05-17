@@ -4,6 +4,7 @@ using Cinnabar.Models;
 using Cinnabar.Services;
 using Discord;
 using Discord.Interactions;
+using Newtonsoft.Json;
 
 namespace Cinnabar.Modules;
 
@@ -161,6 +162,38 @@ public class FunModule : InteractionModuleBase
         meanings = meanings.OrderByDescending(m => m.Definitions.First().Definition.Length).ToList();
         // Return the first item
         return meanings.First();
+    }
+
+    [SlashCommand("album", "Get information about an album")]
+    public async Task Album()
+    {
+        var apiKey = JsonConvert.DeserializeObject<Config>(File.ReadAllText("appsettings.json")).FmApiKey;
+
+        Uri uri = new Uri(
+            $"http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={apiKey}&artist=Cher&album=Believe&format=json");
+        
+        var apiRequest = await _apiService.Get<AlbumRootObject>(uri.ToString());
+        if (!apiRequest.IsSuccess)
+        {
+            await RespondAsync("An error has occured.");
+        }
+        else
+        {
+            Album response = apiRequest.Object.Album;
+
+            var TagsField = new EmbedFieldBuilder
+            {
+                Name = "Tags",
+                Value = String.Join(" ",response.Tags.Tag.Select(t => t.Name))
+            };
+
+            var embed = _embed.CinnabarEmbed($"About {response.Name} by {response.Artist}",
+                response.Wiki.Summary,
+                response.Image[2].ImageUrl,
+                [TagsField], Context.User
+            );
+            await RespondAsync(embed: embed);
+        }
     }
 }
 
