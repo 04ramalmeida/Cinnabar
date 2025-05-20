@@ -4,6 +4,7 @@ using Cinnabar.Models;
 using Cinnabar.Services;
 using Discord;
 using Discord.Interactions;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace Cinnabar.Modules;
@@ -12,12 +13,14 @@ public class FunModule : InteractionModuleBase
 {
     ApiService _apiService;
     EmbedBase _embed;
+    IConfiguration _config;
     public FunModule(
         ApiService apiService,
-        EmbedBase embed)
+        EmbedBase embed, IConfiguration config)
     {
         _apiService = apiService;
         _embed = embed;
+        _config = config;
     }
 
     
@@ -167,7 +170,7 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("album", "Get information about an album")]
     public async Task Album(string artist, string album)
     {
-        var apiKey = JsonConvert.DeserializeObject<Config>(File.ReadAllText("appsettings.json")).FmApiKey;
+        var apiKey = _config.GetValue<string>("FmApiKey");
 
         Uri uri = new Uri(
             $"http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={apiKey}&artist={artist}&album={album}&format=json");
@@ -199,7 +202,7 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("artist", "Get information about an artist")]
     public async Task Artist()
     {
-        var apiKey = JsonConvert.DeserializeObject<Config>(File.ReadAllText("appsettings.json")).FmApiKey;
+        var apiKey = _config.GetValue<string>("FmApiKey");
 
         Uri uri = new Uri(
             $"https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=Cher&api_key={apiKey}&format=json");

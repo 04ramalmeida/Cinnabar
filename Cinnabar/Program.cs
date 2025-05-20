@@ -6,35 +6,39 @@ using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 
 namespace Cinnabar;
 public class Program
 {
-    private static IServiceProvider _serviceProvider;
     private static DiscordSocketClient _client;
     private static InteractionService _interaction;
-
-    static IServiceProvider CreateServices()
-    {
-        
-        var collection = new ServiceCollection()
-            .AddSingleton(new DiscordSocketConfig())
-            .AddSingleton(new DiscordSocketClient())
-            .AddSingleton<ApiService>()
-            .AddTransient<GeneralModule>()
-            .AddTransient<FunModule>()
-            .AddTransient<EmbedBase>();
-
-        return collection.BuildServiceProvider();
-    }
+    private static IHost _host;
+    
     
     public static async Task Main()
     {
-        _serviceProvider = CreateServices();
-        _client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
+        _host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton(new DiscordSocketConfig());
+                services.AddSingleton(new DiscordSocketClient());
+                services.AddSingleton<ApiService>();
+                services.AddSingleton<GeneralModule>();
+                services.AddSingleton<FunModule>();
+                services.AddSingleton<EmbedBase>();
+
+            })
+            .Build();
+        
+        
+
+        IConfiguration config = _host.Services.GetRequiredService<IConfiguration>();
+        _client = _host.Services.GetRequiredService<DiscordSocketClient>();
         _client.Log += Log;
 
         var interactionServiceConfig = new InteractionServiceConfig
@@ -43,18 +47,18 @@ public class Program
         };
         _interaction = new InteractionService(_client, interactionServiceConfig);
         _interaction.Log += Log;
-        
-        var token = JsonConvert.DeserializeObject<Config>(File.ReadAllText("appsettings.json")).Token;
+
+        var token = config.GetValue<string>("Token");
         
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
         
 
-        await _interaction.AddModulesAsync(Assembly.GetEntryAssembly(), _serviceProvider);
+        await _interaction.AddModulesAsync(Assembly.GetEntryAssembly(), _host.Services);
         _client.Ready += async () =>  await _interaction.RegisterCommandsGloballyAsync();
         _client.InteractionCreated += (socketInteraction) => InteractionCreated(socketInteraction);
 
-        
+        await _host.RunAsync();
         await Task.Delay(-1);
     }
 
@@ -64,7 +68,7 @@ public class Program
         {
             SocketInteractionContext ctx = new(_client, socketInteraction);
 
-            await _interaction.ExecuteCommandAsync(ctx, _serviceProvider);
+            await _interaction.ExecuteCommandAsync(ctx, _host.Services);
         }
         catch
         {
@@ -82,3 +86,4 @@ public class Program
         return Task.CompletedTask;
     }
 }
+
