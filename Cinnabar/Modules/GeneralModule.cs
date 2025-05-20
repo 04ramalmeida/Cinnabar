@@ -8,12 +8,7 @@ namespace Cinnabar.Modules;
 
 public class GeneralModule : InteractionModuleBase
 {
-    EmbedBase _embed = new EmbedBase();
-
-    public GeneralModule(EmbedBase embed)
-    {
-        _embed = embed;
-    }
+    
     [SlashCommand("say", "Receives an input from the user and repeats it")]
     public async Task Say(string input)
     {
@@ -38,20 +33,13 @@ public class GeneralModule : InteractionModuleBase
     [SlashCommand("info", "Displays information about the bot")]
     public async Task Info()
     {
-        var botUser = Context.Client.CurrentUser;
-        var botAvatar = botUser.GetAvatarUrl();
-        var botVer = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-        var dnetVer = DiscordConfig.Version;
-        /*var embed = new EmbedBuilder()
-            .WithAuthor($"About {botUser.Username}", botAvatar)
-            .WithThumbnailUrl(botAvatar)
-            .WithDescription($"Cinnabar v{botVer} is a general-purpose Discord bot built on Discord.NET v{dnetVer} running on .NET {Environment.Version}")
-            .WithColor(new Color(255, 5, 59))
-            .WithFooter($"Command ran by {Context.Interaction.User.Username}")
-            .WithCurrentTimestamp()
-            .Build();*/
+        IUser botUser = Context.Client.CurrentUser;
+        string botAvatar = botUser.GetAvatarUrl();
+        string botVer = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+        string dnetVer = DiscordConfig.Version;
+        
 
-        var embed = _embed.CinnabarEmbed($"About {botUser.Username}",
+        Embed embed = EmbedBase.CinnabarEmbed($"About {botUser.Username}",
             $"Cinnabar v{botVer} is a general-purpose Discord bot built on Discord.NET v{dnetVer} running on .NET {Environment.Version}",
             botAvatar,
             null,
@@ -95,15 +83,7 @@ public class GeneralModule : InteractionModuleBase
             Value = guildUser.IsBot
         };
         var imageUrl = user.GetAvatarUrl();
-        /*var embed = new EmbedBuilder() 
-            .WithAuthor($"About {user.Username}", iconUrl: imageUrl)
-            .WithFields(idField, nameField, nickName, creationDate, joinedDate, isBot)
-            .WithThumbnailUrl(imageUrl)
-            .WithColor(new Color(255, 5, 59))
-            .WithFooter($"Command ran by {user.Username}")
-            .WithCurrentTimestamp()
-            .Build();*/
-        var embed = _embed.CinnabarEmbed($"About {user.Username}",
+        Embed embed = EmbedBase.CinnabarEmbed($"About {user.Username}",
             null,
             imageUrl,
             [idField, nameField, nickName, creationDate, joinedDate, isBot],
@@ -115,8 +95,8 @@ public class GeneralModule : InteractionModuleBase
     [SlashCommand("serverinfo", "Displays information about the server")]
     public async Task ServerInfo()
     {
-        var guild = Context.Guild;
-        var owner = guild.GetOwnerAsync().Result;
+        IGuild guild = Context.Guild;
+        IGuildUser owner = guild.GetOwnerAsync().Result;
         var serverName = new EmbedFieldBuilder
         {
             Name = "Server Name",
@@ -143,7 +123,7 @@ public class GeneralModule : InteractionModuleBase
             Value = (guild as SocketGuild).Channels.Count
         };
         
-        var embed = _embed.CinnabarEmbed($"About {guild.Name}",
+        Embed embed = EmbedBase.CinnabarEmbed($"About {guild.Name}",
             string.Empty,
             guild.IconUrl,
             [serverName, created, memberCount, channelCount],

@@ -1,25 +1,19 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Cinnabar.Models;
 using Cinnabar.Services;
 using Discord;
 using Discord.Interactions;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 
 namespace Cinnabar.Modules;
 
 public class FunModule : InteractionModuleBase
 {
     ApiService _apiService;
-    EmbedBase _embed;
     IConfiguration _config;
     public FunModule(
-        ApiService apiService,
-        EmbedBase embed, IConfiguration config)
+        ApiService apiService, IConfiguration config)
     {
         _apiService = apiService;
-        _embed = embed;
         _config = config;
     }
 
@@ -28,30 +22,29 @@ public class FunModule : InteractionModuleBase
     public async Task Cat()
     {
         var apiRequest = await _apiService.Get<List<Cat>>("https://api.thecatapi.com/v1/images/search");
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            List<Cat> response = apiRequest.Object;
-            Uri url = new Uri(apiRequest.Object.FirstOrDefault().Url);
+            Uri url = new Uri(apiRequest.Object.FirstOrDefault()!.Url);
             await RespondAsync(url.AbsoluteUri);
         }
     }
-
+    
+    
     [SlashCommand("dog", "Get a picture of a dog.")]
     public async Task Dog()
     {
         var apiRequest = await _apiService.Get<Dog>("https://dog.ceo/api/breeds/image/random");
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            Dog response = apiRequest.Object;
-            Uri url = new Uri(apiRequest.Object.Message);
+            Uri url = new Uri(apiRequest.Object.Url);
             await RespondAsync(url.AbsoluteUri);
         }
     }
@@ -60,14 +53,13 @@ public class FunModule : InteractionModuleBase
     public async Task Fox()
     {
         var apiRequest = await _apiService.Get<Fox>("https://randomfox.ca/floof/");
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            Fox response = apiRequest.Object;
-            Uri url = new Uri(apiRequest.Object.Image);
+            Uri url = new Uri(apiRequest.Object.Url);
             await RespondAsync(url.AbsoluteUri);
         }
     }
@@ -75,51 +67,50 @@ public class FunModule : InteractionModuleBase
     [SlashCommand("weather", "Get information about the weather in a certain city.")]
     public async Task Weather(string city)
     {
-        var apiRequest = await _apiService.Get<Weather>($"http://goweather.xyz/weather/{city}");
+        var apiRequest = await _apiService.Get<Weather>($"https://goweather.xyz/weather/{city}");
         var currentDate = DateTime.Now;
-        var tomorrow = DateTime.Today.AddDays(1);
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
             Weather response = apiRequest.Object;
-            var TemperatureField = new EmbedFieldBuilder
+            var temperatureField = new EmbedFieldBuilder
             {
                 Name = "Temperature",
                 Value = response.Temperature
             };
-            var WindField = new EmbedFieldBuilder
+            var windField = new EmbedFieldBuilder
             {
                 Name = "Wind",
                 Value = response.Wind
             };
-            var DescriptionField = new EmbedFieldBuilder
+            var descriptionField = new EmbedFieldBuilder
             {
                 Name = "Description",
                 Value = response.Description
             };
-            var ForecastTmrwField = new EmbedFieldBuilder
+            var forecastTmrwField = new EmbedFieldBuilder
             {
                 Name = $"Forecast for {currentDate.AddDays(1).ToShortDateString()}",
                 Value = response.Forecast[0].Temperature,
                 IsInline = true
             };
-            var ForecastTwoField = new EmbedFieldBuilder
+            var forecastTwoField = new EmbedFieldBuilder
             {
                 Name = $"Forecast for {currentDate.AddDays(2).ToShortDateString()}",
                 Value = response.Forecast[1].Temperature,
                 IsInline = true
             };
-            var ForecastThreeField = new EmbedFieldBuilder
+            var forecastThreeField = new EmbedFieldBuilder
             {
                 Name = $"Forecast for {currentDate.AddDays(3).ToShortDateString()}",
                 Value = response.Forecast[2].Temperature,
                 IsInline = true
             };
-            var embed = _embed.CinnabarEmbed($"Weather for {city}", String.Empty, String.Empty,
-                [TemperatureField, WindField, DescriptionField, ForecastTmrwField, ForecastTwoField, ForecastThreeField], Context.User);
+            Embed embed = EmbedBase.CinnabarEmbed($"Weather for {city}", String.Empty, String.Empty,
+                [temperatureField, windField, descriptionField, forecastTmrwField, forecastTwoField, forecastThreeField], Context.User);
             await RespondAsync(embed: embed);
         }
     }
@@ -128,13 +119,13 @@ public class FunModule : InteractionModuleBase
     public async Task Dictionary(string word)
     {
         var apiRequest = await _apiService.Get<List<DictionaryDef>>($"https://api.dictionaryapi.dev/api/v2/entries/en/{word}");
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
         else
         {
-            DictionaryDef response = apiRequest.Object.FirstOrDefault();
+            DictionaryDef response = apiRequest.Object.FirstOrDefault()!;
             var firstMeaning = GetMeaning(response);
             string description = "**Definition**\n" +
                                  $"{firstMeaning.Definitions[0].Definition}\n" +
@@ -144,14 +135,8 @@ public class FunModule : InteractionModuleBase
                 Name = "Phonetics",
                 Value = response.Phonetics[1].Text
             };
-            /*EmbedFieldBuilder originField = new EmbedFieldBuilder
-            {
-                Name = "Origin",
-                Value = response.Origin
-            };*/
             
-            
-            var embed = _embed.CinnabarEmbed($"Definition for {response.Word}", description, String.Empty, 
+            Embed embed = EmbedBase.CinnabarEmbed($"Definition for {response.Word}", description, String.Empty, 
                 [phoneticsField], Context.User);
             await RespondAsync(embed: embed);
         }
@@ -173,10 +158,10 @@ public class FunModule : InteractionModuleBase
         var apiKey = _config.GetValue<string>("FmApiKey");
 
         Uri uri = new Uri(
-            $"http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={apiKey}&artist={artist}&album={album}&format=json");
+            $"https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={apiKey}&artist={artist}&album={album}&format=json");
         
         var apiRequest = await _apiService.Get<AlbumRootObject>(uri.ToString());
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
@@ -184,31 +169,31 @@ public class FunModule : InteractionModuleBase
         {
             Album response = apiRequest.Object.Album;
 
-            var TagsField = new EmbedFieldBuilder
+            var tagsField = new EmbedFieldBuilder
             {
                 Name = "Tags",
-                Value = String.Join(" ",response.Tags.Tag.Select(t => t.Name))
+                Value = String.Join(" ",response.TagsRoot.Tags.Select(t => t.Name))
             };
 
-            var embed = _embed.CinnabarEmbed($"About {response.Name} by {response.Artist}",
+            Embed embed = EmbedBase.CinnabarEmbed($"About {response.Name} by {response.Artist}",
                 response.Wiki.Summary,
-                response.Image[2].ImageUrl,
-                [TagsField], Context.User
+                response.Images[2].ImageUrl,
+                [tagsField], Context.User
             );
             await RespondAsync(embed: embed);
         }
     }
 
     [SlashCommand("artist", "Get information about an artist")]
-    public async Task Artist()
+    public async Task Artist(string artist)
     {
         var apiKey = _config.GetValue<string>("FmApiKey");
 
         Uri uri = new Uri(
-            $"https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=Cher&api_key={apiKey}&format=json");
+            $"https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={artist}&api_key={apiKey}&format=json");
         
         var apiRequest = await _apiService.Get<ArtistRootObject>(uri.ToString());
-        if (!apiRequest.IsSuccess)
+        if (!apiRequest.IsSuccess || apiRequest.Object == null)
         {
             await RespondAsync("An error has occured.");
         }
@@ -216,21 +201,21 @@ public class FunModule : InteractionModuleBase
         {
             Artist response = apiRequest.Object.artist;
 
-            var TagsField = new EmbedFieldBuilder
+            var tagsField = new EmbedFieldBuilder
             {
                 Name = "Tags",
-                Value = String.Join(" ",response.Tags.Tag.Select(t => t.Name))
+                Value = String.Join(" ",response.TagsRoot.Tags.Select(t => t.Name))
             };
             
-            var SimilarField = new EmbedFieldBuilder
+            var similarField = new EmbedFieldBuilder
             {
                 Name = "Similar artists",
                 Value = String.Join(", ",response.Similar.Artist.Select(s => s.Name)),
                 
             };
-            var embed = _embed.CinnabarEmbed($"About {response.Name}",
+            Embed embed = EmbedBase.CinnabarEmbed($"About {response.Name}",
                 response.Bio.Summary, response.Image[2].ImageUrl,
-                [TagsField, SimilarField], Context.User); 
+                [tagsField, similarField], Context.User); 
             await RespondAsync(embed: embed);
         }
     }

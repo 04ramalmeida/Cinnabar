@@ -37,7 +37,7 @@ public class Program
         
         
 
-        IConfiguration config = _host.Services.GetRequiredService<IConfiguration>();
+        var config = _host.Services.GetRequiredService<IConfiguration>();
         _client = _host.Services.GetRequiredService<DiscordSocketClient>();
         _client.Log += Log;
 
@@ -56,7 +56,7 @@ public class Program
 
         await _interaction.AddModulesAsync(Assembly.GetEntryAssembly(), _host.Services);
         _client.Ready += async () =>  await _interaction.RegisterCommandsGloballyAsync();
-        _client.InteractionCreated += (socketInteraction) => InteractionCreated(socketInteraction);
+        _client.InteractionCreated += InteractionCreated;
 
         await _host.RunAsync();
         await Task.Delay(-1);
@@ -75,7 +75,7 @@ public class Program
             if (socketInteraction.Type == InteractionType.ApplicationCommand)
             {
                 await socketInteraction.GetOriginalResponseAsync()
-                    .ContinueWith(async (msg) => msg.Result.DeleteAsync());
+                    .ContinueWith(async (msg) => await msg.Result.DeleteAsync());
             }
         }
     }

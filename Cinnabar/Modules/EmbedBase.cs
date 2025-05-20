@@ -5,7 +5,7 @@ namespace Cinnabar;
 
 public class EmbedBase : InteractionModuleBase
 {
-    public Embed CinnabarEmbed(string authorTitle,
+    public static Embed CinnabarEmbed(string authorTitle,
         string? description,
         string? imageUrl,
         EmbedFieldBuilder[]? fields,
